@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+const runCommand = require('./utils').runCommand;
+
+const args = process.argv.slice(2);
+
+const reviewMergeFile = file => {
+  runCommand('git status', (err, res) => {
+    if (err) throw err;
+
+    const matches = res.match(/You are currently rebasing branch '([^']*)'/);
+    if (!matches) {
+      process.stdout.write('echo "Not currently rebasing"');
+      return;
+    }
+
+    const finalCommand = `git log -p $(git merge-base ${
+      matches[1]
+    } HEAD)..HEAD ${file}`;
+
+    process.stdout.write(finalCommand);
+  });
+};
+
+if (args[0] === 'review') {
+  reviewMergeFile(args[1]);
+}
